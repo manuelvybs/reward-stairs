@@ -5,8 +5,16 @@ floating gift cards (they fly off and become stars) and hops across hover-cards 
 as you climb. At the summit every card you collected swoops back down as a step, and the astronaut climbs them to a
 crescent moon, sits in it and cheers. The end screen has the **Get VYBS** button.
 
+**Play:** https://manuelvybs.github.io/reward-stairs/
+
 The mechanic follows fal's *Paper Moon Stairs* showcase (walk a winding stairway, touch pickups, cross gaps on floating
 platforms, an ending staircase to the moon). Everything else is ours: code, level layout, art, music, the mascot and the gift-card economy.
+
+## Deploy
+
+GitHub Pages serves `main` from the repo root. Commit and `git push`; Pages rebuilds in about a minute. Check the live
+build with `node tools/playtest.mjs art-src/live --base https://manuelvybs.github.io/reward-stairs/index.html`.
+`og.jpg` is the 1200×630 share image.
 
 ## Run it
 
@@ -46,4 +54,3 @@ node tools/inputtest.mjs                  # real keyboard on desktop + real touc
 ## Before posting
 
 - `GAME.store` in `src/config.js` points at the store pages; swap in the Singular link.
-- Add `og:image` (1200×630 JPG, full URL) once the game has its public address.
