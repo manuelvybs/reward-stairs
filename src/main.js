@@ -26,10 +26,14 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.NoToneMapping;
 document.body.prepend(renderer.domElement);
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 2000);
+const camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight || 1, 0.1, 2000);
 const post = new Post(renderer, scene, camera, Q);
 const narrow = () => clamp((1.25 - camera.aspect) / 0.75, 0, 1);
+// in-app browsers (and hidden webviews) can boot at 0x0 and grow later without a resize event: tick() polls the size
+const view = { w: 0, h: 0 };
 function fit() {
+  view.w = innerWidth; view.h = innerHeight;
+  if (!view.w || !view.h) return;
   renderer.setSize(innerWidth, innerHeight);
   camera.aspect = innerWidth / innerHeight;
   camera.fov = lerp(46, 66, narrow());
@@ -140,11 +144,13 @@ function startEnding() {
 }
 
 // ---- frame loop ----------------------------------------------------------------------------------------------------
-const clock = new THREE.Clock();
+let lastNow = performance.now();
 let acc = 0, stepCool = 0;
 const noJump = { left: false, right: false, jumpPressed: false };
 function tick() {
-  const dt = Math.min(clock.getDelta(), 1 / 20);
+  if (innerWidth !== view.w || innerHeight !== view.h) fit();
+  if (!view.w || !view.h) return;              // nothing to draw into yet (and a NaN aspect would poison the camera)
+  const now = performance.now(), dt = Math.min((now - lastNow) / 1000, 1 / 20); lastNow = now;
   const t = (G.t += dt);
   const inp = input.sample();
   if (inp.mute) $('mute').textContent = sound.toggle() ? '✕' : '♪';
@@ -211,7 +217,7 @@ function tick() {
   world.update(dt, t, G.night, camera, { s: G.mode === 'play' ? P.s : 86, x: hp.x, y: hp.y, z: hp.z });
   fx.update(dt);
   post.watch(dt, G.mode === 'play');
-  post.render();
+  if (view.w && view.h) post.render();
 }
 
 G.ready = true;
