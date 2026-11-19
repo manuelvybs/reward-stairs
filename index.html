@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reward Stairs</title>
+<meta name="description" content="Climb the sky stairs with the VYBS astronaut, collect every gift card and reach the moon.">
+<meta property="og:title" content="Reward Stairs">
+<meta property="og:description" content="Climb the sky stairs, collect every gift card, reach the moon.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #ffffff; --shadow: rgba(40, 26, 110, .6); --gold: #ffd401; --indigo: #2a2a8f; --violet: #5a2e9e; --brand: #5b69fe; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--indigo); touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  canvas { display: block; position: fixed; inset: 0; width: 100vw; height: 100vh; }
+  .ov { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;
+        opacity: 0; transition: opacity .9s ease; color: var(--ink); font-family: Kanit, system-ui, sans-serif; text-align: center; padding: 0 16px;
+        text-shadow: 0 3px 22px var(--shadow), 0 0 2px rgba(40, 26, 110, .5); }
+  .ov.on { opacity: 1; }
+  #title { background: radial-gradient(ellipse at 50% 44%, rgba(30, 20, 90, .38), rgba(30, 20, 90, 0) 64%); }
+  #end { background: radial-gradient(ellipse at 50% 50%, rgba(30, 20, 90, .5), rgba(30, 20, 90, .08) 72%); }
+  h1 { font-weight: 700; font-size: clamp(40px, 8vw, 108px); letter-spacing: .01em; line-height: 1; margin: 0; }
+  h1 .st { display: inline-block; color: var(--gold); transform: translateY(-.08em); filter: drop-shadow(0 0 14px rgba(255, 200, 40, .7)); }
+  .sub { font-size: clamp(14px, 1.6vw, 22px); letter-spacing: .16em; text-transform: uppercase; margin-top: .7em; opacity: .95; }
+  .press { margin-top: 2.2em; font-size: clamp(13px, 1.3vw, 18px); letter-spacing: .3em; text-transform: uppercase; animation: pulse 2.2s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  .ctl { position: absolute; bottom: max(6vh, 24px); left: 16px; right: 16px; font-size: clamp(12px, 1.1vw, 15px); letter-spacing: .05em; opacity: .9; }
+  #loading { font-size: 15px; letter-spacing: .3em; text-transform: uppercase; }
+  #endHead { font-size: clamp(34px, 6.2vw, 84px); }
+  #endStats { margin-top: .5em; font-size: clamp(18px, 2.2vw, 30px); letter-spacing: .06em; display: flex; align-items: center; gap: .45em; }
+  #endTag { margin-top: 1.2em; font-size: clamp(15px, 1.6vw, 21px); letter-spacing: .14em; text-transform: uppercase; opacity: .95; }
+  .btns { display: flex; gap: 14px; margin-top: 1.6em; flex-wrap: wrap; justify-content: center; }
+  .btn { pointer-events: auto; font: 600 clamp(16px, 1.6vw, 21px) Kanit, system-ui, sans-serif; border: 0; border-radius: 999px; padding: .62em 1.6em; cursor: pointer; text-decoration: none; }
+  .btn.main { background: var(--gold); color: #24206b; box-shadow: 0 6px 24px rgba(255, 196, 0, .45); }
+  .btn.alt { background: rgba(255, 255, 255, .16); color: #fff; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .55); }
+  #end:not(.on) .btn { pointer-events: none; }
+  .gc { display: inline-block; width: 1.5em; height: .96em; border-radius: .16em; background: linear-gradient(135deg, #ffe680, #ffc400 55%, #f39d00); box-shadow: 0 0 10px rgba(255, 200, 0, .7), inset 0 0 0 2px rgba(255, 255, 255, .5); position: relative; }
+  .gc::after { content: ''; position: absolute; left: 18%; right: 18%; top: 42%; height: 16%; background: rgba(120, 70, 0, .35); border-radius: 2px; }
+  #hud { position: fixed; right: max(16px, 3vw, env(safe-area-inset-right)); top: max(14px, 3vh, env(safe-area-inset-top)); display: flex; align-items: center; gap: .5em; color: #fff;
+         font: 600 24px Kanit, system-ui, sans-serif; text-shadow: 0 1px 10px var(--shadow); opacity: 0; transition: opacity .5s; pointer-events: none; }
+  #hud.on { opacity: 1; }
+  #hud .gc { transition: transform .25s ease; }
+  #hud.bump .gc { transform: scale(1.45) rotate(-12deg); }
+  #hud small { opacity: .75; font-weight: 400; }
+  #fade { position: fixed; inset: 0; background: #f6e3f4; opacity: 0; transition: opacity .35s; pointer-events: none; }
+  #fade.on { opacity: .9; transition: opacity .15s; }
+  #pads { position: fixed; inset: auto 0 0 0; height: 0; display: none; }
+  #pads.on { display: block; }
+  .pad { position: fixed; bottom: max(22px, env(safe-area-inset-bottom)); width: 76px; height: 76px; border-radius: 50%; background: rgba(255, 255, 255, .17);
+         box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .5), 0 4px 18px rgba(30, 20, 90, .35); display: flex; align-items: center; justify-content: center;
+         color: #fff; font: 700 30px Kanit, system-ui, sans-serif; touch-action: none; -webkit-tap-highlight-color: transparent; }
+  .pad.down { background: rgba(255, 255, 255, .38); }
+  #padL { left: max(18px, env(safe-area-inset-left)); }
+  #padR { left: calc(max(18px, env(safe-area-inset-left)) + 92px); }
+  #padJ { right: max(18px, env(safe-area-inset-right)); width: 92px; height: 92px; background: rgba(255, 212, 1, .78); color: #2a2a8f; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .7), 0 4px 18px rgba(255, 190, 0, .35); }
+  #padJ.down { background: rgba(255, 226, 90, .95); }
+  #mute { position: fixed; left: max(14px, env(safe-area-inset-left)); top: max(12px, env(safe-area-inset-top)); width: 40px; height: 40px; border-radius: 50%; border: 0;
+          background: rgba(255, 255, 255, .14); color: #fff; font-size: 18px; cursor: pointer; opacity: 0; transition: opacity .5s; pointer-events: none; }
+  #mute.on { opacity: 1; pointer-events: auto; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/jsm/" } }
+</script>
+</head>
+<body>
+<div id="loading" class="ov on">loading the stairs…</div>
+<div id="title" class="ov">
+  <h1>Reward Stairs<span class="st">✦</span></h1>
+  <div class="sub">climb to the moon · collect every gift card</div>
+  <div class="press" id="press">tap or press any key</div>
+  <div class="ctl" id="ctl"></div>
+</div>
+<div id="end" class="ov">
+  <h1 id="endHead">You reached the moon!</h1>
+  <div id="endStats"><span class="gc"></span><b id="endCount">0</b><small>/ <span id="endTotal">0</span> gift cards</small></div>
+  <div id="endTag">play games · earn rewards</div>
+  <div class="btns"><a class="btn main" id="cta" href="https://vybs.co" target="_blank" rel="noopener">Get VYBS</a><button class="btn alt" id="again">Climb again</button></div>
+</div>
+<div id="hud"><span class="gc"></span><b id="count">0</b><small>/ <span id="total">0</span></small></div>
+<button id="mute" aria-label="sound on/off">♪</button>
+<div id="pads"><div class="pad" id="padL">◀</div><div class="pad" id="padR">▶</div><div class="pad" id="padJ">⤒</div></div>
+<div id="fade"></div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

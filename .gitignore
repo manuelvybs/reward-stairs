@@ -1,0 +1,6 @@
+node_modules/
+tools/fal-log.jsonl
+art-src/live/
+.DS_Store
+art-src/*.png
+.omc/
